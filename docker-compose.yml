@@ -1,0 +1,95 @@
+services:
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - JWT_SECRET=dev-secret
+      - DEVICE_MANAGER_URL=http://device-manager:8082
+      - DATA_STORE_URL=http://data-store:8086
+  device-connect:
+    build:
+      context: ./backend/device-connect
+    ports:
+      - "8090:8090"
+      - "8091:8091"
+    environment:
+      - NATS_URL=nats://nats:4222
+      - REDIS_ADDR=redis:6379
+      - PG_URL=postgres://postgres:postgres@postgres:5432/iot?sslmode=disable
+  device-manager:
+    build:
+      context: ./backend/device-manager
+    ports:
+      - "8082:8082"
+  asset-manager:
+    build:
+      context: ./backend/asset-manager
+    ports:
+      - "8083:8083"
+  alert-center:
+    build:
+      context: ./backend/alert-center
+    ports:
+      - "8084:8084"
+  device-gateway:
+    build:
+      context: ./backend/device-gateway
+    ports:
+      - "8070:8070"
+      - "1883:1883"
+      - "5683:5683/udp"
+    environment:
+      - DC_GRPC_ADDR=device-connect:8091
+    depends_on:
+      - device-connect
+  rule-engine:
+    build:
+      context: ./backend/rule-engine
+    ports:
+      - "8085:8085"
+    environment:
+      - NATS_URL=nats://nats:4222
+      - PG_URL=postgres://postgres:postgres@postgres:5432/iot?sslmode=disable
+  web-ui:
+    build:
+      context: ./web-ui
+    environment:
+      - VITE_API_BASE_URL=http://api-gateway:8080
+      - VITE_CONNECT_BASE_URL=http://device-connect:8090
+      - VITE_DEVICE_MANAGER_URL=http://device-manager:8082
+      - VITE_ASSET_MANAGER_URL=http://asset-manager:8083
+      - VITE_ALERT_CENTER_URL=http://alert-center:8084
+      - VITE_RULE_ENGINE_URL=http://rule-engine:8085
+    ports:
+      - "5173:4173"
+    depends_on:
+      - api-gateway
+      - device-connect
+  nats:
+    image: nats:2.10
+    command: ["-js"]
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=iot
+    ports:
+      - "5432:5432"
+  data-store:
+    build:
+      context: ./backend/data-store
+    ports:
+      - "8086:8086"
+    depends_on:
+      - postgres
+      - redis
