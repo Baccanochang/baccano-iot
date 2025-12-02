@@ -15,10 +15,16 @@ func main() {
     go httpx.NewServer().Listen(":8085")
     nurl := os.Getenv("NATS_URL"); if nurl == "" { nurl = "nats://localhost:4222" }
     nb, err := busx.NewNatsBus(nurl)
-    if err != nil { log.Printf("nats init err: %v", err); return }
-    pgurl := os.Getenv("PG_URL"); if pgurl == "" { pgurl = "postgres://postgres:postgres@localhost:5432/iot?sslmode=disable" }
-    pg, err := store.NewPostgres(pgurl)
-    if err != nil { log.Printf("pg init err: %v", err) }
+    if err != nil {
+        log.Printf("nats init err: %v", err)
+        nb = busx.NewMemoryBus()
+    }
+    pgurl := os.Getenv("PG_URL")
+    var pg *store.Postgres
+    if pgurl != "" {
+        p, err := store.NewPostgres(pgurl)
+        if err != nil { log.Printf("pg init err: %v", err) } else { pg = p }
+    }
     _ = nb.Subscribe("device.telemetry.*", func(m busx.Message) {
         var payload map[string]interface{}
         _ = json.Unmarshal(m.Data, &payload)
