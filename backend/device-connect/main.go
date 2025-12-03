@@ -5,7 +5,7 @@ import (
     "os"
     "sync"
     "baccano-iot/core-message-bus/pkg/bus"
-    ds "baccano-iot/data-store/internal/store"
+    "baccano-iot/data-store"
     httpx "baccano-iot/device-connect/internal/http"
     grpcx "baccano-iot/device-connect/internal/grpc"
     "baccano-iot/device-connect/internal/repository"
@@ -16,10 +16,10 @@ func main() {
     nurl := os.Getenv("NATS_URL"); if nurl == "" { nurl = "nats://localhost:4222" }
     nb, err := bus.NewNatsBus(nurl)
     if err != nil { log.Printf("nats init failed: %v", err); nb = nil }
-    rds := ds.NewRedis(os.Getenv("REDIS_ADDR"))
+    rds := store.NewRedis(os.Getenv("REDIS_ADDR"))
     pgURL := os.Getenv("PG_URL")
-    var pg *ds.Postgres
-    if pgURL != "" { pg, _ = ds.NewPostgres(pgURL) }
+    var pg *store.Postgres
+    if pgURL != "" { pg, _ = store.NewPostgres(pgURL) }
 
     repo := repository.NewRepo()
     svc := service.NewConnectService(repo)

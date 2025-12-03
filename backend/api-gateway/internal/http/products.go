@@ -21,7 +21,10 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProductHandler) PutModel(w http.ResponseWriter, r *http.Request, productID string) {
-    var body struct{ Version string `json:"version"` Model domain.ThingModel `json:"model"` }
+    var body struct {
+        Version string          `json:"version"`
+        Model   domain.ThingModel `json:"model"`
+}
     if err := json.NewDecoder(r.Body).Decode(&body); err != nil { w.WriteHeader(http.StatusBadRequest); json.NewEncoder(w).Encode(map[string]string{"error":"invalid body"}); return }
     m := h.svc.SaveModel(productID, body.Version, body.Model)
     json.NewEncoder(w).Encode(m)
@@ -39,14 +42,19 @@ func (h *ProductHandler) GetModel(w http.ResponseWriter, r *http.Request, produc
 }
 
 func (h *ProductHandler) ValidateModel(w http.ResponseWriter, r *http.Request) {
-    var body struct{ Model domain.ThingModel `json:"model"` }
+    var body struct {
+        Model domain.ThingModel `json:"model"`
+}
     if err := json.NewDecoder(r.Body).Decode(&body); err != nil { w.WriteHeader(http.StatusBadRequest); json.NewEncoder(w).Encode(map[string]string{"error":"invalid body"}); return }
     res := h.svc.ValidateModel(body.Model)
     json.NewEncoder(w).Encode(res)
 }
 
 func (h *ProductHandler) DiffModels(w http.ResponseWriter, r *http.Request) {
-    var body struct{ A domain.ThingModel `json:"a"` B domain.ThingModel `json:"b"` }
+    var body struct {
+        A domain.ThingModel `json:"a"`
+        B domain.ThingModel `json:"b"`
+}
     if err := json.NewDecoder(r.Body).Decode(&body); err != nil { w.WriteHeader(http.StatusBadRequest); json.NewEncoder(w).Encode(map[string]string{"error":"invalid body"}); return }
     res := h.svc.DiffModels(body.A, body.B)
     json.NewEncoder(w).Encode(res)

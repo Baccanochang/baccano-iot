@@ -1,5 +1,5 @@
 module baccano-iot/core-message-bus
 
-go 1.22
+go 1.25
 
 require github.com/nats-io/nats.go v1.36.0

@@ -1,7 +1,6 @@
 package server
 
 import (
-    "net/http"
     "github.com/gin-gonic/gin"
     "baccano-iot/api-gateway/internal/http"
 )

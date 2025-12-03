@@ -12,6 +12,43 @@ if (Test-Path $buildDir) {
     Remove-Item -Recurse -Force $buildDir
 }
 
+$buildDir = "backend/build"
+if (Test-Path $buildDir) {
+    Write-Host "Removing $buildDir/"
+    Remove-Item -Recurse -Force $buildDir
+}
+
+# 清理各模块中的二进制文件
+$modules = @(
+    "backend/core-message-bus",
+    "backend/api-gateway",
+    "backend/device-manager",
+    "backend/asset-manager",
+    "backend/alert-center",
+    "backend/data-store",
+    "backend/device-connect",
+    "backend/device-gateway",
+    "backend/rule-engine"
+)
+
+foreach ($mod in $modules) {
+    if (Test-Path $mod) {
+        $moduleName = Split-Path $mod -Leaf
+        $exePath = Join-Path $mod "$moduleName.exe"
+        if (Test-Path $exePath) {
+            Write-Host "Removing $exePath"
+            Remove-Item -Force $exePath
+        }
+        
+        # 清理可能的 Linux/macOS 二进制文件
+        $linuxPath = Join-Path $mod $moduleName
+        if (Test-Path $linuxPath) {
+            Write-Host "Removing $linuxPath"
+            Remove-Item -Force $linuxPath
+        }
+    }
+}
+
 # 清理前端
 $webUiDir = "web-ui"
 if (Test-Path $webUiDir) {

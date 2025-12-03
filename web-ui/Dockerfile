@@ -1,16 +1,26 @@
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package.json ./
-COPY tsconfig.json ./
-COPY vite.config.ts ./
-COPY index.html ./
-COPY src ./src
-RUN npm install && npm run build
+# Use lightweight Alpine Linux
+FROM alpine:latest
 
-FROM node:20-alpine
-WORKDIR /app
-COPY --from=builder /app/dist /app/dist
-RUN npm install vite
-EXPOSE 4173
-CMD ["npx", "vite", "preview", "--host", "0.0.0.0", "--port", "4173"]
+# Install CA certificates for HTTPS, timezone data, and nginx
+RUN apk --no-cache add ca-certificates tzdata nginx
 
+# Set working directory
+WORKDIR /usr/share/nginx/html
+
+# Copy the pre-built static files from host
+COPY dist/ .
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Make nginx run in foreground
+RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+
+# Expose port
+EXPOSE 80
+
+# Set timezone environment variable
+ENV TZ=Asia/Shanghai
+
+# Start nginx
+CMD ["nginx"]

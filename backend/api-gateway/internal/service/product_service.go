@@ -15,15 +15,24 @@ func (s *ProductService) SaveModel(productID, version string, m domain.ThingMode
 func (s *ProductService) ListModels(productID string) map[string]domain.ThingModel { return s.repo.ListModels(productID) }
 func (s *ProductService) GetModel(productID, version string) (domain.ThingModel, bool) { return s.repo.GetModel(productID, version) }
 
-type ValidationResult struct { Valid bool `json:"valid"` Message string `json:"message"` }
+type ValidationResult struct {
+    Valid   bool   `json:"valid"`
+    Message string `json:"message"`
+}
 
 func (s *ProductService) ValidateModel(m domain.ThingModel) ValidationResult {
     if m.SchemaVersion == "" { return ValidationResult{Valid: false, Message: "schemaVersion required"} }
     return ValidationResult{Valid: true, Message: "ok"}
 }
 
-type DiffRequest struct { A domain.ThingModel B domain.ThingModel }
-type DiffResult struct { Added []string `json:"added"` Removed []string `json:"removed"` }
+type DiffRequest struct {
+    A domain.ThingModel
+    B domain.ThingModel
+}
+type DiffResult struct {
+    Added   []string `json:"added"`
+    Removed []string `json:"removed"`
+}
 
 func (s *ProductService) DiffModels(a, b domain.ThingModel) DiffResult {
     amap := map[string]struct{}{}

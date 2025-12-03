@@ -1,6 +1,6 @@
 module baccano-iot/api-gateway
 
-go 1.22
+go 1.25
 
 require (
 	baccano-iot/shared/log v0.0.0-00010101000000-000000000000

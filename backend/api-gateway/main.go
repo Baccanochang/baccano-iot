@@ -1,8 +1,6 @@
 package main
 
 import (
-    "encoding/json"
-    "net/http"
     "github.com/gin-gonic/gin"
     "baccano-iot/api-gateway/internal/domain"
     "baccano-iot/api-gateway/internal/http"

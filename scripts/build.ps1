@@ -1,7 +1,9 @@
 # build.ps1
 Param(
     [switch]$SkipFrontend,
-    [switch]$Run
+    [switch]$Run,
+    [switch]$Linux,
+    [switch]$Help
 )
 
 $ErrorActionPreference = "Stop"
@@ -15,10 +17,33 @@ if (!(Test-Path $buildDir)) {
 
 function Build-Package($modulePath) {
     $moduleName = Split-Path $modulePath -Leaf
-    $outputPath = Join-Path $buildDir "$moduleName.exe"
+    
+    # 根据平台设置不同的输出路径和扩展名
+    # if ($Linux) {
+    #     $outputName = $moduleName  # Linux 二进制文件无扩展名
+    #     $env:GOOS = "linux"
+    #     $env:GOARCH = "amd64"
+    #     $env:CGO_ENABLED = "0"
+    # } else {
+    $outputName = "$moduleName.exe"  # Windows 二进制文件
+    # }
+    
+    $outputPath = Join-Path $buildDir $outputName
     Write-Host "Building $moduleName -> $outputPath"
     Push-Location $modulePath
-    go build -o "../$outputPath"
+    try {
+        go build -o "../$outputPath"
+        Write-Host "Successfully built $moduleName"
+    } catch {
+        Write-Warning "Build failed for $modulePath`: $($_.Exception.Message)"
+    } finally {
+        # 清理环境变量
+        if ($Linux) {
+            Remove-Item Env:GOOS -ErrorAction SilentlyContinue
+            Remove-Item Env:GOARCH -ErrorAction SilentlyContinue
+            Remove-Item Env:CGO_ENABLED -ErrorAction SilentlyContinue
+        }
+    }
     Pop-Location
 }
 

@@ -31,7 +31,10 @@ func (h *DeviceHandler) GetModel(w http.ResponseWriter, r *http.Request, model d
 }
 
 func (h *DeviceHandler) RPC(w http.ResponseWriter, r *http.Request, id string) {
-    var body struct{ Service string `json:"service"` Params map[string]interface{} `json:"params"` }
+    var body struct {
+        Service string                 `json:"service"`
+        Params  map[string]interface{} `json:"params"`
+}
     if err := json.NewDecoder(r.Body).Decode(&body); err != nil { w.WriteHeader(http.StatusBadRequest); json.NewEncoder(w).Encode(map[string]string{"error":"invalid body"}); return }
     json.NewEncoder(w).Encode(map[string]interface{}{"deviceId": id, "service": body.Service, "status": "accepted"})
 }

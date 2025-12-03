@@ -1,16 +1,22 @@
+version: '3.8'
+
 services:
   api-gateway:
     build:
       context: ./backend/api-gateway
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     environment:
       - JWT_SECRET=dev-secret
       - DEVICE_MANAGER_URL=http://device-manager:8082
       - DATA_STORE_URL=http://data-store:8086
+    restart: unless-stopped
+
   device-connect:
     build:
       context: ./backend/device-connect
+      dockerfile: Dockerfile
     ports:
       - "8090:8090"
       - "8091:8091"
@@ -18,24 +24,36 @@ services:
       - NATS_URL=nats://nats:4222
       - REDIS_ADDR=redis:6379
       - PG_URL=postgres://postgres:postgres@postgres:5432/iot?sslmode=disable
+    restart: unless-stopped
+
   device-manager:
     build:
       context: ./backend/device-manager
+      dockerfile: Dockerfile
     ports:
       - "8082:8082"
+    restart: unless-stopped
+
   asset-manager:
     build:
       context: ./backend/asset-manager
+      dockerfile: Dockerfile
     ports:
       - "8083:8083"
+    restart: unless-stopped
+
   alert-center:
     build:
       context: ./backend/alert-center
+      dockerfile: Dockerfile
     ports:
       - "8084:8084"
+    restart: unless-stopped
+
   device-gateway:
     build:
       context: ./backend/device-gateway
+      dockerfile: Dockerfile
     ports:
       - "8070:8070"
       - "1883:1883"
@@ -44,39 +62,48 @@ services:
       - DC_GRPC_ADDR=device-connect:8091
     depends_on:
       - device-connect
+    restart: unless-stopped
+
   rule-engine:
     build:
       context: ./backend/rule-engine
+      dockerfile: Dockerfile
     ports:
       - "8085:8085"
     environment:
       - NATS_URL=nats://nats:4222
       - PG_URL=postgres://postgres:postgres@postgres:5432/iot?sslmode=disable
+    restart: unless-stopped
+
   web-ui:
     build:
       context: ./web-ui
-    environment:
-      - VITE_API_BASE_URL=http://api-gateway:8080
-      - VITE_CONNECT_BASE_URL=http://device-connect:8090
-      - VITE_DEVICE_MANAGER_URL=http://device-manager:8082
-      - VITE_ASSET_MANAGER_URL=http://asset-manager:8083
-      - VITE_ALERT_CENTER_URL=http://alert-center:8084
-      - VITE_RULE_ENGINE_URL=http://rule-engine:8085
+      dockerfile: Dockerfile
     ports:
-      - "5173:4173"
+      - "80:80"
     depends_on:
       - api-gateway
       - device-connect
+      - device-manager
+      - asset-manager
+      - alert-center
+      - rule-engine
+    restart: unless-stopped
+
   nats:
     image: nats:2.10
     command: ["-js"]
     ports:
       - "4222:4222"
       - "8222:8222"
+    restart: unless-stopped
+
   redis:
     image: redis:7
     ports:
       - "6379:6379"
+    restart: unless-stopped
+
   postgres:
     image: postgres:16
     environment:
@@ -85,11 +112,23 @@ services:
       - POSTGRES_DB=iot
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
   data-store:
     build:
       context: ./backend/data-store
+      dockerfile: Dockerfile
     ports:
       - "8086:8086"
     depends_on:
       - postgres
       - redis
+    environment:
+      - PG_URL=postgres://postgres:postgres@postgres:5432/iot?sslmode=disable
+      - REDIS_ADDR=redis:6379
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

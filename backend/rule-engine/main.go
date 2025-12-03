@@ -7,7 +7,7 @@ import (
     "net/http"
     "os"
     busx "baccano-iot/core-message-bus/pkg/bus"
-    store "baccano-iot/data-store/internal/store"
+    "baccano-iot/data-store"
     httpx "baccano-iot/rule-engine/internal/http"
 )
 
@@ -20,9 +20,9 @@ func main() {
         nb = busx.NewMemoryBus()
     }
     pgurl := os.Getenv("PG_URL")
-    var pg *store.Postgres
+    var pg *data_store.Postgres
     if pgurl != "" {
-        p, err := store.NewPostgres(pgurl)
+        p, err := data_store.NewPostgres(pgurl)
         if err != nil { log.Printf("pg init err: %v", err) } else { pg = p }
     }
     _ = nb.Subscribe("device.telemetry.*", func(m busx.Message) {
@@ -30,7 +30,7 @@ func main() {
         _ = json.Unmarshal(m.Data, &payload)
         temp, _ := payload["temperature"].(float64)
         if temp > 80 {
-            _ = pg.SaveEvent(store.Event{DeviceID: "", Ts: 0, Type: "alert", Data: m.Data})
+            _ = pg.SaveEvent(data_store.Event{DeviceID: "", Ts: 0, Type: "alert", Data: m.Data})
             _, _ = http.Post("http://localhost:8084/api/v1/alerts", "application/json", bytes.NewBuffer([]byte(`{"id":"a1","deviceId":"demo","type":"temp_high","severity":"MAJOR","status":"ACTIVE"}`)))
         }
     })

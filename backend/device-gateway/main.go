@@ -3,7 +3,7 @@ package main
 import (
     "bytes"
     "context"
-    "encoding/json"
+    "log"
     "net/http"
     "os"
     "strings"
@@ -15,15 +15,17 @@ import (
     "github.com/mochi-mqtt/server/v2/listeners"
     "github.com/mochi-mqtt/server/v2/packets"
 
-    coap "github.com/plgd-dev/go-coap/v3/coap"
+    coap "github.com/plgd-dev/go-coap/v3"
     "github.com/plgd-dev/go-coap/v3/mux"
+    "github.com/plgd-dev/go-coap/v3/message/codes"
+    "github.com/plgd-dev/go-coap/v3/message"
 )
 
 type gwHook struct{ mqtt.HookBase; dc *client.DCClient }
 
 func (h *gwHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
     deviceID := cl.ID
-    productID := pk.Connect.Username
+    productID := string(pk.Connect.Username)
     credential := string(pk.Connect.Password)
     _, err := h.dc.Authenticate(context.Background(), deviceID, productID, credential)
     return err == nil
@@ -50,21 +52,28 @@ func main() {
     server := mqtt.New(nil)
     server.AddHook(&gwHook{dc: dc}, nil)
 
-    tcp := listeners.NewTCP("mqtt-tcp", ":1883")
-    _ = server.AddListener(tcp, &listeners.Config{})
+    tcpConfig := &listeners.Config{
+        Address: ":1883",
+    }
+    tcp := listeners.NewTCP("tcp1", "tcp", tcpConfig)
+    err := server.AddListener(tcp)
+    if err != nil {
+        log.Fatal(err)
+    }
 
     go func() { _ = server.Serve() }()
 
     router := mux.NewRouter()
     router.Handle("/v1/{productId}/{deviceId}/telemetry", mux.HandlerFunc(func(w mux.ResponseWriter, r *mux.Message) {
-        path := r.Path()
+        path, err := r.Message.Path()
+        if err != nil { return }
         if len(path) < 5 { return }
-        productID := path[1]
-        deviceID := path[2]
-        payload := r.Message.Payload
+        productID := string(path[1])
+        deviceID := string(path[2])
+        payload, _ := r.Message.ReadBody()
         ts := time.Now().UnixMilli()
         _, _ = dc.PublishTelemetry(context.Background(), deviceID, productID, string(payload), ts)
-        _ = w.SetResponse(coap.Changed, coap.TextPlain, bytes.NewReader([]byte("ok")))
+        _ = w.SetResponse(codes.Changed, message.TextPlain, bytes.NewReader([]byte("ok")))
     }))
 
     go func() { _ = coap.ListenAndServe("udp", ":5683", router) }()
