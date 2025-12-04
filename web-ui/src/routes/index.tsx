@@ -3,7 +3,7 @@ import Dashboard from '../features/dashboard'
 import DeviceDetails from '../pages/DeviceDetails'
 import ProductList from '../features/product-mgmt/ProductList'
 import ProductDetails from '../features/product-mgmt/ProductDetails'
-import AssetTree from '../features/asset-tree'
+import { AssetTreeManagement } from '../features/asset-management'
 import RuleEngine from '../features/rule-engine'
 import ThingModelEditor from '../features/product-mgmt/ThingModelEditor'
 import TelemetryTrend from '../features/dashboard/TelemetryTrend'
@@ -17,7 +17,7 @@ export default function AppRoutes() {
       <Route path="/devices/:deviceId" element={<DeviceDetails />} />
       <Route path="/products" element={<ProductList />} />
       <Route path="/products/:productId" element={<ProductDetails />} />
-      <Route path="/asset-tree" element={<AssetTree />} />
+      <Route path="/asset-tree" element={<AssetTreeManagement />} />
       <Route path="/rule-engine" element={<RuleEngine />} />
       <Route path="/products/model-editor" element={<ThingModelEditor />} />
       <Route path="/dashboard/telemetry" element={<TelemetryTrend />} />

@@ -1,14 +1,15 @@
 import { useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button, Card, Form, Input, Select, Space, Table, Typography } from 'antd'
-import { callService, createDevice, getAttributes, getDevice, getShadow, getThingModel, updateAttributes, updateDesired } from '../api/client'
+import { callService, createDevice, getAttributes, getDevice, getLatestTelemetry, getShadow, getThingModelByDevice, updateAttributes, updateDesired } from '../api/devices'
+import { getThingModel } from '../api/products'
 
 export default function DeviceDetails() {
   const { deviceId } = useParams()
   const qc = useQueryClient()
 
   const createDemo = useMutation({
-    mutationFn: () => createDevice({ id: deviceId || 'demo', name: 'Demo Device', productId: 'prod-1', modelVersion: 'v1' }),
+    mutationFn: () => createDevice({ id: deviceId || 'demo-dev', name: 'Demo Device', productId: 'demo-prod', modelVersion: 'v1' }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['device', deviceId] })
       qc.invalidateQueries({ queryKey: ['shadow', deviceId] })
@@ -16,22 +17,30 @@ export default function DeviceDetails() {
     }
   })
 
-  const device = useQuery({ queryKey: ['device', deviceId], queryFn: () => getDevice(deviceId || 'demo'), enabled: !!deviceId })
-  const model = useQuery({ queryKey: ['model', deviceId], queryFn: () => getThingModel(deviceId || 'demo'), enabled: !!deviceId })
-  const shadow = useQuery({ queryKey: ['shadow', deviceId], queryFn: () => getShadow(deviceId || 'demo'), enabled: !!deviceId })
-  const attributes = useQuery({ queryKey: ['attributes', deviceId], queryFn: () => getAttributes(deviceId || 'demo'), enabled: !!deviceId })
+  const device = useQuery({ queryKey: ['device', deviceId], queryFn: () => getDevice(deviceId || 'demo-dev'), enabled: !!deviceId })
+  const model = useQuery({ 
+    queryKey: ['model', deviceId], 
+    queryFn: () => {
+      const productId = device.data?.productId || 'demo-prod'
+      const version = device.data?.modelVersion || 'v1'
+      return getThingModel(productId, version)
+    }, 
+    enabled: !!deviceId && !!device.data?.productId 
+  })
+  const shadow = useQuery({ queryKey: ['shadow', deviceId], queryFn: () => getShadow(deviceId || 'demo-dev'), enabled: !!deviceId })
+  const attributes = useQuery({ queryKey: ['attributes', deviceId], queryFn: () => getAttributes(deviceId || 'demo-dev'), enabled: !!deviceId })
 
   const desiredUpdate = useMutation({
-    mutationFn: (values: Record<string, any>) => updateDesired(deviceId || 'demo', values),
+    mutationFn: (values: Record<string, any>) => updateDesired(deviceId || 'demo-dev', values),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['shadow', deviceId] })
   })
 
   const attrUpdate = useMutation({
-    mutationFn: (values: Record<string, any>) => updateAttributes(deviceId || 'demo', values),
+    mutationFn: (values: Record<string, any>) => updateAttributes(deviceId || 'demo-dev', values),
     onMutate: async (values) => {
       await qc.cancelQueries({ queryKey: ['attributes', deviceId] })
       const prev = qc.getQueryData(['attributes', deviceId]) as any
-      qc.setQueryData(['attributes', deviceId], (old: any) => ({ ...(old || {}), attributes: { ...(old?.attributes || {}), ...values } }))
+      qc.setQueryData(['attributes', deviceId], (old: any) => ({ ...(old || {}), ...values }))
       return { prev }
     },
     onError: (_err, _vars, ctx) => { if (ctx?.prev) qc.setQueryData(['attributes', deviceId], ctx.prev) },
@@ -39,7 +48,7 @@ export default function DeviceDetails() {
   })
 
   const serviceCall = useMutation({
-    mutationFn: (values: Record<string, any>) => callService(deviceId || 'demo', values.service, values),
+    mutationFn: (values: Record<string, any>) => callService(deviceId || 'demo-dev', values.service, values),
   })
 
   return (
@@ -75,7 +84,7 @@ export default function DeviceDetails() {
       <Card title="属性管理">
         <Form onFinish={(v) => attrUpdate.mutate(v)} layout="vertical">
           {Array.isArray(model.data?.properties) && model.data?.properties.filter((p: any) => p.category === 'attribute').map((p: any) => (
-            <Form.Item key={p.identifier} name={p.identifier} label={p.name} initialValue={attributes.data?.attributes?.[p.identifier]}>
+            <Form.Item key={p.identifier} name={p.identifier} label={p.name} initialValue={attributes.data?.[p.identifier]}>
               <Input placeholder={p.identifier} />
             </Form.Item>
           ))}
@@ -84,7 +93,7 @@ export default function DeviceDetails() {
         <Table
           rowKey={(r) => r[0]}
           columns={[{ title: '键', dataIndex: 0 }, { title: '值', dataIndex: 1 }]}
-          dataSource={attributes.data ? Object.entries(attributes.data.attributes || {}) : []}
+          dataSource={attributes.data ? Object.entries(attributes.data || {}) : []}
           pagination={false}
         />
       </Card>
