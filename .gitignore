@@ -56,3 +56,5 @@ coverage/
 *.tmp
 *.temp
 .cache/
+/.trae/
+.trae
