@@ -1,0 +1,51 @@
+server:
+  port: 8085
+
+# Spring配置
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/baccano-iot
+    username: postgres
+    password: 123456
+    driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 
+      database: 0
+  rocketmq:
+    name-server: localhost:9876
+    producer:
+      group: rule-engine-producer
+    consumer:
+      group: rule-engine-consumer
+
+# MyBatis Plus配置
+mybatis-plus:
+  mapper-locations: classpath:/mapper/**/*.xml
+  type-aliases-package: com.baccano.iot.rule.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# 规则引擎配置
+rule:
+  engine:
+    type: drools
+    rules-path: classpath:/rules/
+    refresh-interval: 300000 # 规则刷新间隔，单位：毫秒
+
+# TDengine配置
+taos:
+  url: jdbc:TAOS://localhost:6030/baccano-iot
+  username: root
+  password: taosdata
+  poolSize: 10
+
+# 日志配置
+logging:
+  level:
+    com.baccano.iot.rule: debug
+    org.drools: info
+    org.springframework: info

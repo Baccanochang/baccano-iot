@@ -1,0 +1,64 @@
+server:
+  port: 8081
+
+# MQTT配置
+mqtt:
+  enabled: true
+  broker:
+    host: 0.0.0.0
+    port: 1883
+    sslPort: 8883
+  client:
+    id: device-connect-mqtt-client
+    username: admin
+    password: password
+    keepAliveInterval: 60
+    connectTimeout: 30
+  topic:
+    devicePrefix: v1
+    telemetrySuffix: telemetry
+    commandSuffix: command
+    responseSuffix: response
+
+# CoAP配置
+coap:
+  enabled: true
+  server:
+    host: 0.0.0.0
+    port: 5683
+  sslPort: 5684
+
+# Redis配置
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 
+      database: 0
+  rocketmq:
+    name-server: localhost:9876
+    producer:
+      group: device-connect-producer
+
+# TDengine配置
+taos:
+  url: jdbc:TAOS://localhost:6030/baccano-iot
+  username: root
+  password: taosdata
+  poolSize: 10
+
+# 设备会话配置
+device:
+  session:
+    timeout: 3600 # 会话超时时间，单位：秒
+    heartbeatInterval: 60 # 心跳间隔，单位：秒
+    maxOfflineTime: 3600 # 最大离线时间，单位：秒
+
+# 日志配置
+logging:
+  level:
+    com.baccano.iot.connect: debug
+    io.netty: info
+    org.eclipse.paho: info
+    org.eclipse.californium: info

@@ -1,0 +1,51 @@
+server:
+  port: 8087
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/baccano-iot
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 
+      database: 0
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath*:mapper/**/*.xml
+  type-aliases-package: com.baccano.iot.auth.entity
+
+# JWT配置
+jwt:
+  secret: baccano-iot-secret-key-2025
+  expire: 3600 # 过期时间，单位：秒
+  refresh-expire: 86400 # 刷新令牌过期时间，单位：秒
+  issuer: baccano-iot
+  subject: auth
+
+# Swagger配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'auth'
+      paths-to-match: '/api/v1/**'
+      packages-to-scan: com.baccano.iot.auth.controller

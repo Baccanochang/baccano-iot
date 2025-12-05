@@ -1,93 +1,23 @@
 version: '3.8'
 
 services:
-  api-gateway:
-    build:
-      context: ./backend/api-gateway
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
+  # 中间件服务
+  postgres:
+    image: postgres:16
     environment:
-      - JWT_SECRET=dev-secret
-      - DEVICE_MANAGER_URL=http://device-manager:8082
-      - DATA_STORE_URL=http://data-store:8086
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=baccano-iot
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
 
-  device-connect:
-    build:
-      context: ./backend/device-connect
-      dockerfile: Dockerfile
+  redis:
+    image: redis:7
     ports:
-      - "8090:8090"
-      - "8091:8091"
-    environment:
-      - NATS_URL=nats://nats:4222
-      - REDIS_ADDR=redis:6379
-      - PG_URL=postgres://postgres:postgres@postgres:5432/iot?sslmode=disable
-    restart: unless-stopped
-
-  device-manager:
-    build:
-      context: ./backend/device-manager
-      dockerfile: Dockerfile
-    ports:
-      - "8082:8082"
-    restart: unless-stopped
-
-  asset-manager:
-    build:
-      context: ./backend/asset-manager
-      dockerfile: Dockerfile
-    ports:
-      - "8083:8083"
-    restart: unless-stopped
-
-  alert-center:
-    build:
-      context: ./backend/alert-center
-      dockerfile: Dockerfile
-    ports:
-      - "8084:8084"
-    restart: unless-stopped
-
-  device-gateway:
-    build:
-      context: ./backend/device-gateway
-      dockerfile: Dockerfile
-    ports:
-      - "8070:8070"
-      - "1883:1883"
-      - "5683:5683/udp"
-    environment:
-      - DC_GRPC_ADDR=device-connect:8091
-    depends_on:
-      - device-connect
-    restart: unless-stopped
-
-  rule-engine:
-    build:
-      context: ./backend/rule-engine
-      dockerfile: Dockerfile
-    ports:
-      - "8085:8085"
-    environment:
-      - NATS_URL=nats://nats:4222
-      - PG_URL=postgres://postgres:postgres@postgres:5432/iot?sslmode=disable
-    restart: unless-stopped
-
-  web-ui:
-    build:
-      context: ./web-ui
-      dockerfile: Dockerfile
-    ports:
-      - "80:80"
-    depends_on:
-      - api-gateway
-      - device-connect
-      - device-manager
-      - asset-manager
-      - alert-center
-      - rule-engine
+      - "6379:6379"
     restart: unless-stopped
 
   nats:
@@ -98,36 +28,144 @@ services:
       - "8222:8222"
     restart: unless-stopped
 
-  redis:
-    image: redis:7
+  # 后端服务
+  api-gateway:
+    image: openjdk:17-jdk-alpine
     ports:
-      - "6379:6379"
-    restart: unless-stopped
-
-  postgres:
-    image: postgres:16
-    environment:
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=iot
-    ports:
-      - "5432:5432"
+      - "8080:8080"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-
-  data-store:
-    build:
-      context: ./backend/data-store
-      dockerfile: Dockerfile
-    ports:
-      - "8086:8086"
+      - ./backend/api-gateway/target/api-gateway-1.0.0.jar:/app/app.jar
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/baccano-iot
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+      - JWT_SECRET=baccano-iot-secret-key-2025
+    command: ["java", "-jar", "/app/app.jar"]
     depends_on:
       - postgres
       - redis
+    restart: unless-stopped
+
+  auth-service:
+    image: openjdk:17-jdk-alpine
+    ports:
+      - "8087:8087"
+    volumes:
+      - ./backend/auth-service/target/auth-service-1.0.0.jar:/app/app.jar
     environment:
-      - PG_URL=postgres://postgres:postgres@postgres:5432/iot?sslmode=disable
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/baccano-iot
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+      - JWT_SECRET=baccano-iot-secret-key-2025
+    command: ["java", "-jar", "/app/app.jar"]
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  device-connect:
+    image: openjdk:17-jdk-alpine
+    ports:
+      - "8090:8090"
+      - "8091:8091"
+    volumes:
+      - ./backend/device-connect/target/device-connect-1.0.0.jar:/app/app.jar
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - NATS_URL=nats://nats:4222
       - REDIS_ADDR=redis:6379
+      - PG_URL=postgres://postgres:postgres@postgres:5432/baccano-iot?sslmode=disable
+    command: ["java", "-jar", "/app/app.jar"]
+    depends_on:
+      - postgres
+      - redis
+      - nats
+    restart: unless-stopped
+
+  device-manager:
+    image: openjdk:17-jdk-alpine
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./backend/device-manager/target/device-manager-1.0.0.jar:/app/app.jar
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/baccano-iot
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    command: ["java", "-jar", "/app/app.jar"]
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  asset-manager:
+    image: openjdk:17-jdk-alpine
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./backend/asset-manager/target/asset-manager-1.0.0.jar:/app/app.jar
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/baccano-iot
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    command: ["java", "-jar", "/app/app.jar"]
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  alert-center:
+    image: openjdk:17-jdk-alpine
+    ports:
+      - "8084:8084"
+    volumes:
+      - ./backend/alert-center/target/alert-center-1.0.0.jar:/app/app.jar
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/baccano-iot
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - NATS_URL=nats://nats:4222
+    command: ["java", "-jar", "/app/app.jar"]
+    depends_on:
+      - postgres
+      - nats
+    restart: unless-stopped
+
+  rule-engine:
+    image: openjdk:17-jdk-alpine
+    ports:
+      - "8085:8085"
+    volumes:
+      - ./backend/rule-engine/target/rule-engine-1.0.0.jar:/app/app.jar
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/baccano-iot
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - NATS_URL=nats://nats:4222
+    command: ["java", "-jar", "/app/app.jar"]
+    depends_on:
+      - postgres
+      - nats
+    restart: unless-stopped
+
+  # 前端服务
+  web-ui:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./web-ui/dist:/usr/share/nginx/html
+      - ./web-ui/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - api-gateway
     restart: unless-stopped
 
 volumes:

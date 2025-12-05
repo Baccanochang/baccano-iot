@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: asset-manager
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: baccano-iot
+      config:
+        server-addr: localhost:8848
+        namespace: baccano-iot
+        file-extension: yml
+        group: DEFAULT_GROUP
+        shared-configs:
+          - data-id: application-common.yml
+            group: DEFAULT_GROUP
+            refresh: true

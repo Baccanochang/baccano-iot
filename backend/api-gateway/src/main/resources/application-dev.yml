@@ -1,0 +1,81 @@
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # 认证授权服务路由
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - StripPrefix=0
+
+        # 设备管理服务路由
+        - id: device-manager
+          uri: lb://device-manager
+          predicates:
+            - Path=/api/v1/devices/**
+          filters:
+            - StripPrefix=0
+
+        # 设备连接服务路由
+        - id: device-connect
+          uri: lb://device-connect
+          predicates:
+            - Path=/api/v1/connect/**
+          filters:
+            - StripPrefix=0
+
+        # 规则引擎服务路由
+        - id: rule-engine
+          uri: lb://rule-engine
+          predicates:
+            - Path=/api/v1/rules/**
+          filters:
+            - StripPrefix=0
+
+        # 告警中心服务路由
+        - id: alert-center
+          uri: lb://alert-center
+          predicates:
+            - Path=/api/v1/alerts/**
+          filters:
+            - StripPrefix=0
+
+        # 资产管理服务路由
+        - id: asset-manager
+          uri: lb://asset-manager
+          predicates:
+            - Path=/api/v1/assets/**
+          filters:
+            - StripPrefix=0
+
+        # 协议适配服务路由
+        - id: protocol-adapter
+          uri: lb://protocol-adapter
+          predicates:
+            - Path=/api/v1/protocols/**
+          filters:
+            - StripPrefix=0
+
+# JWT配置
+jwt:
+  secret: baccano-iot-secret-key-2025
+  expire: 3600 # 过期时间，单位：秒
+  issuer: baccano-iot
+  subject: auth
+
+# 日志配置
+logging:
+  level:
+    org.springframework.cloud.gateway: debug
+    org.springframework.http.server.reactive: debug
+    org.springframework.web.reactive: debug
+    reactor.netty: debug
