@@ -1,13 +1,5 @@
 spring:
   application:
     name: auth-service
-  cloud:
-    nacos:
-      discovery:
-        enabled: false
-      config:
-        enabled: false
-        import-check:
-          enabled: false
   profiles:
     active: ${ACTIVE_PROFILE:dev}

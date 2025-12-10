@@ -1,7 +1,11 @@
 version: '3.8'
 
 services:
-  # 中间件服务
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
   postgres:
     image: postgres:16
     environment:
@@ -11,14 +15,10 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
 
-  redis:
-    image: redis:7
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
+
 
   nats:
     image: nats:2.10

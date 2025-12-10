@@ -1,10 +1,10 @@
 package com.baccano.iot.auth.entity;
 
-import com.baccano.iot.auth.entity.JpaBaseEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import jakarta.persistence.*;
 
 /**
  * 设备实体类
@@ -51,7 +51,7 @@ public class Device extends JpaBaseEntity {
     /**
      * 设备版本
      */
-    @Column(name = "version", length = 50)
+    @Column(name = "device_version", length = 50)
     private String deviceVersion;
 
     /**

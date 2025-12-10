@@ -3,15 +3,15 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/baccano-iot
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://192.168.1.91:8432/baccano-iot
+    username: admin
+    password: hFbyk%Cc*lFMiwJe
     driver-class-name: org.postgresql.Driver
   data:
     redis:
-      host: localhost
-      port: 6379
-      password: 
+      host: 192.168.1.91
+      port: 8379
+      password: hFbyk%Cc*lFMiwJe
       database: 0
   rocketmq:
     name-server: localhost:9876

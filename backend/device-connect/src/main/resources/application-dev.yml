@@ -32,9 +32,9 @@ coap:
 spring:
   data:
     redis:
-      host: localhost
-      port: 6379
-      password: 
+      host: 192.168.1.91
+      port: 8379
+      password: hFbyk%Cc*lFMiwJe
       database: 0
   rocketmq:
     name-server: localhost:9876
