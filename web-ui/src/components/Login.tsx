@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Cpu, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Cpu, User, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { authApi, tokenManager, LoginRequest } from '../api/authApi';
 
 interface LoginProps {
@@ -7,7 +7,7 @@ interface LoginProps {
 }
 
 export function Login({ onLogin }: LoginProps) {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -21,7 +21,7 @@ export function Login({ onLogin }: LoginProps) {
 
     try {
       const credentials: LoginRequest = {
-        email,
+        username,
         password,
         rememberMe
       };
@@ -30,7 +30,7 @@ export function Login({ onLogin }: LoginProps) {
       const response = await authApi.login(credentials);
       
       // 保存令牌和用户信息
-      tokenManager.saveToken(response.token, response.refreshToken, rememberMe);
+      tokenManager.saveToken(response.accessToken, response.refreshToken, rememberMe);
       tokenManager.saveUser(response.user);
       
       // 登录成功，调用父组件的onLogin回调
@@ -64,19 +64,19 @@ export function Login({ onLogin }: LoginProps) {
             </div>
           )}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
+            {/* Username Field */}
             <div>
-              <label htmlFor="email" className="block text-sm text-gray-700 mb-2">
-                Email Address
+              <label htmlFor="username" className="block text-sm text-gray-700 mb-2">
+                Username
               </label>
               <div className="relative">
-                <Mail className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <User className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter your username"
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
@@ -152,7 +152,7 @@ export function Login({ onLogin }: LoginProps) {
           {/* Demo Credentials */}
           <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-900 mb-2">Demo Credentials:</p>
-            <p className="text-sm text-blue-700">Email: demo@iotplatform.com</p>
+            <p className="text-sm text-blue-700">Username: demo</p>
             <p className="text-sm text-blue-700">Password: demo123</p>
           </div>
 

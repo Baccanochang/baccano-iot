@@ -39,7 +39,7 @@ mybatis-plus:
 
 # JWT配置
 jwt:
-  secret: baccano-iot-secret-key-2025
+  secret: m7VYp9xF6LJtY4e2yM0cB0Qv5b8Kk2P8nA1RZC9H3Xw=
   expire: 3600 # 过期时间，单位：秒
   refresh-expire: 86400 # 刷新令牌过期时间，单位：秒
   issuer: baccano-iot

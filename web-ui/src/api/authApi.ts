@@ -2,14 +2,16 @@ import apiClient from './axiosConfig';
 
 // 登录请求类型
 export interface LoginRequest {
-  email: string;
+  username: string;
   password: string;
   rememberMe?: boolean;
 }
 
 // 登录响应类型
 export interface LoginResponse {
-  token: string;
+  accessToken: string;
+  tokenType?: string;
+  expiresIn?: number;
   refreshToken?: string;
   user: {
     id: string;
@@ -53,14 +55,32 @@ export const authApi = {
 
   // 检查权限
   checkPermission: (permission: string): boolean => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    return user.permissions?.includes(permission) || false;
+    try {
+      const userStr = localStorage.getItem('user');
+      if (!userStr || userStr === 'undefined') {
+        return false;
+      }
+      const user = JSON.parse(userStr);
+      return user.permissions?.includes(permission) || false;
+    } catch (error) {
+      console.error('Check permission error:', error);
+      return false;
+    }
   },
 
   // 检查角色
   checkRole: (role: string): boolean => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    return user.role === role;
+    try {
+      const userStr = localStorage.getItem('user');
+      if (!userStr || userStr === 'undefined') {
+        return false;
+      }
+      const user = JSON.parse(userStr);
+      return user.role === role;
+    } catch (error) {
+      console.error('Check role error:', error);
+      return false;
+    }
   },
 };
 
@@ -108,6 +128,6 @@ export const tokenManager = {
   // 获取用户信息
   getUser: (): UserInfo | null => {
     const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+    return userStr && userStr !== 'undefined' ? JSON.parse(userStr) : null;
   },
 };

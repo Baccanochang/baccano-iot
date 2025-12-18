@@ -8,12 +8,11 @@ import com.baccano.iot.auth.service.AuthService;
 import com.baccano.iot.auth.utils.JwtUtils;
 import com.baccano.iot.common.core.exception.BusinessException;
 import com.baccano.iot.common.core.response.ResultCode;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import jakarta.annotation.Resource;
 
 /**
  * 认证服务实现类
@@ -162,4 +161,5 @@ public class AuthServiceImpl implements AuthService {
     public boolean verifyPassword(User user, String password) {
         return passwordEncoder.matches(password, user.getPassword());
     }
+
 }
