@@ -2,6 +2,14 @@ server:
   port: 8087
 
 spring:
+  cloud:
+    consul:
+      host: 192.168.1.91
+      port: 18500
+      discovery:
+        register: true
+        instance-id: ${spring.application.name}-${server.port}
+        service-name: ${spring.application.name}
   datasource:
     url: jdbc:postgresql://192.168.1.91:8432/baccano-iot
     username: admin

@@ -1,8 +1,11 @@
 spring:
-  profiles:
-    active: dev
   main:
     web-application-type: reactive
 #  autoconfigure:
 #    exclude:
 #      - org.springframework.cloud.autoconfigure.LifecycleMvcEndpointAutoConfiguration
+  application:
+    name: api-gateway
+  profiles:
+    active: ${ACTIVE_PROFILE:dev}
+

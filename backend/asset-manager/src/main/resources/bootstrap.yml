@@ -3,3 +3,11 @@ spring:
     name: asset-manager
   profiles:
     active: ${ACTIVE_PROFILE:dev}
+  cloud:
+    consul:
+      host: 192.168.1.91
+      port: 18500
+      discovery:
+        register: true
+        instance-id: ${spring.application.name}-${server.port}
+        service-name: ${spring.application.name}

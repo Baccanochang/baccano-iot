@@ -4,6 +4,13 @@ server:
 
 spring:
   cloud:
+    consul:
+      host: 192.168.1.91
+      port: 18500
+      discovery:
+        register: true
+        service-name: api-gateway
+        instance-id: api-gateway-local
     gateway:
       server:
         webflux:
@@ -87,7 +94,7 @@ jwt:
 # 日志配置
 logging:
   level:
-    org.springframework.cloud.gateway: debug
-    org.springframework.http.server.reactive: debug
-    org.springframework.web.reactive: debug
-    reactor.netty: debug
+    org.springframework.cloud.gateway: info
+    org.springframework.http.server.reactive: info
+    org.springframework.web.reactive: info
+    reactor.netty: info

@@ -28,12 +28,10 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
-        <!-- Spring Cloud Alibaba -->
-
-
+        <!-- RocketMQ -->
         <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-stream-rocketmq</artifactId>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-spring-boot-starter</artifactId>
         </dependency>
 
         <!-- MyBatis Plus -->
@@ -61,6 +59,12 @@
             <groupId>com.baccano.iot</groupId>
             <artifactId>common-mybatis</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <!-- Consul Service Discovery -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-consul-discovery</artifactId>
         </dependency>
     </dependencies>
 

@@ -1,6 +1,6 @@
 spring:
   application:
-    name: rule-engine
+    name: protocol-adapter
   profiles:
     active: ${ACTIVE_PROFILE:dev}
   cloud:

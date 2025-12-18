@@ -1,5 +1,7 @@
 spring:
+  application:
+    name: auth-service
   profiles:
-    active: dev
+    active: ${ACTIVE_PROFILE:dev}
   main:
     allow-bean-definition-overriding: true
